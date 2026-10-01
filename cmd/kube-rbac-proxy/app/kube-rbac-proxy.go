@@ -59,6 +59,8 @@ import (
 	"github.com/brancz/kube-rbac-proxy/pkg/filters"
 	"github.com/brancz/kube-rbac-proxy/pkg/proxy"
 	rbac_proxy_tls "github.com/brancz/kube-rbac-proxy/pkg/tls"
+	"k8s.io/component-base/metrics"
+	_ "k8s.io/component-base/metrics/prometheus/clientgo"
 )
 
 func NewKubeRBACProxyCommand() *cobra.Command {
@@ -315,6 +317,13 @@ func Run(cfg *completedProxyRunOptions) error {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", handler)
+
+	registry := metrics.NewKubeRegistry()
+	http.Handle("/metrics", metrics.HandlerFor(
+		registry,
+		metrics.HandlerOpts{},
+	))
+	go http.ListenAndServe(":6969", nil)
 
 	var gr run.Group
 	{
