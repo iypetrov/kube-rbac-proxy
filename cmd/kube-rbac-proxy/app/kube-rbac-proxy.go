@@ -318,9 +318,8 @@ func Run(cfg *completedProxyRunOptions) error {
 	mux := http.NewServeMux()
 	mux.Handle("/", handler)
 
-	registry := metrics.NewKubeRegistry()
 	http.Handle("/metrics", metrics.HandlerFor(
-		registry,
+		metrics.DefaultGatherer,
 		metrics.HandlerOpts{},
 	))
 	go http.ListenAndServe(":6969", nil)
